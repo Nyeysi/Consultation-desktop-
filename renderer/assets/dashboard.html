@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultation</title>
+    <link rel="stylesheet" href="styles/style.css">
+    <script>
+        window.onload = function() {
+            const qrCode = localStorage.getItem('qrCode');
+            if (qrCode) {
+                var student_id = qrCode;
+                console.log('Student ID from QR Code:', student_id);
+            } else {
+                console.log('QR Code not found in localStorage');
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div>
+            <a href="#" onclick="showContent('appointments')">Consultation</a>
+            <a href="#" onclick="showContent('view-consultations')">View Consultation</a>
+            <a href="#" onclick="showContent('instructor-registration')">Registered Instructors</a>
+            <a href="#" onclick="showContent('update-student')">Update Profile</a>
+        </div>
+        <div class="logout-btn-container">
+            <a href="#" id="logoutBtn" onclick="logout()">Logout</a>
+        </div>
+    </div>
+
+    <div class="content" id="content">
+        <!-- Content will be displayed here -->
+    </div>
+
+    <script>
+        function submitConsultation(event) {
+            event.preventDefault();
+            const student_id = localStorage.getItem('qrCode');
+                
+            if (!student_id) {
+                alert('Student ID not found. Please log in again.');
+                return;
+            }
+            const form = document.getElementById('consultation-form');
+            const formattedDate = new Date(form.date.value).toISOString().split('T')[0];
+            const formattedTime = form.time.value;
+            const formData = {
+                student_id: student_id,
+                class_president_rfid: form.section.value,
+                professor_id: form.instructor.value,
+                time: formattedTime,
+                date: formattedDate,
+                reason: form.reason.value
+            };
+
+            sendConsultationRequest(formData);
+        }
+
+        async function sendConsultationRequest(data) {
+            try {
+                const response = await fetch('https://consultationapi-production.up.railway.app/api/v1/student/request-consultation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                alert('Consultation request sent successfully!');
+                document.getElementById('consultation-form').reset();
+            } catch (error) {
+                console.error('Error submitting consultation:', error);
+                alert('Failed to send consultation request. Please try again later.');
+            }
+        }
+
+        async function fetchInstructors() {
+            try {
+                const response = await fetch('https://consultationapi-production.up.railway.app/api/v1/student/get-professors');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                return data.professors || []; 
+            } catch (error) {
+                console.error('Error fetching instructors:', error);
+                alert('Failed to load instructors. Please try again later.');
+                return [];
+            }
+        }
+
+        async function getConsultations() {
+            try {
+                const student_id = localStorage.getItem('qrCode');
+                
+                if (!student_id) {
+                    alert('Student ID not found. Please log in again.');
+                    return;
+                }
+
+                const url = `https://consultationapi-production.up.railway.app/api/v1/student/get-consultations?student_id=${student_id}`;
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                return data.consultations || [];
+            } catch (error) {
+                console.error('Error fetching consultations:', error);
+                alert('Failed to load consultations. Please try again later.');
+                return [];
+            }
+        }
+
+        async function populateConsultationTable() {
+            const tableBody = document.getElementById("consultation-table-body");
+            tableBody.innerHTML = `<tr><td colspan="5">Loading...</td></tr>`; 
+
+            const consultations = await getConsultations();
+            tableBody.innerHTML = "";
+
+            if (consultations.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="5">No consultations available</td></tr>`;
+                return;
+            }
+
+            consultations.forEach((consultation) => {
+                const status = getConsultationStatus(consultation);
+                const row = document.createElement("tr");
+
+                row.innerHTML = `
+                    <td>${consultation.professor.prof_name}</td>
+                    <td>${consultation.consultation_time}</td>
+                    <td>${consultation.purpose}</td>
+                    <td>${status}</td>
+                    <td>${status === "Pending" ? `<button onclick="cancelConsultation('${consultation.id}')">Cancel</button>` : ""}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            const rows = Array.from(tableBody.querySelectorAll("tr"));
+            const rowsPerPage = 10;
+            setupPagination(rows, rowsPerPage);
+        }
+
+        async function cancelConsultation(consultation_id) {
+            const student_id = localStorage.getItem('qrCode');
+            
+            if (!student_id) {
+                alert('Student ID not found. Please log in again.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`https://consultationapi-production.up.railway.app/api/v1/student/cancel-consultation`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        student_id: student_id,
+                        consultation_id: consultation_id
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                alert('Consultation cancelled successfully!');
+                populateConsultationTable();
+            } catch (error) {
+                console.error('Error cancelling consultation:', error);
+                alert('Failed to cancel consultation. Please try again later.');
+            }
+        }
+
+        function getConsultationStatus(consultation) {
+            if (consultation.status === false) {
+                return consultation.decline_reason ? "Declined" : "Pending";
+            } else if (consultation.status === true) {
+                return consultation.decline_reason ? "Conflict" : "Approved";
+            }
+            return "Unknown";
+        }
+
+        async function populateInstructorDropdown() {
+            const instructorSelect = document.getElementById('instructor');
+            instructorSelect.innerHTML = `<option value="">Loading...</option>`; 
+
+            const instructors = await fetchInstructors();
+            instructorSelect.innerHTML = `<option value="">Select Instructor</option>`; 
+
+            if (instructors.length === 0) {
+                instructorSelect.innerHTML = `<option value="">No instructors available</option>`;
+                return;
+            }
+
+            instructors.forEach(instructor => {
+                const option = document.createElement('option');
+                option.value = instructor.id;
+                option.textContent = instructor.name;
+                instructorSelect.appendChild(option);
+            });
+        }
+
+        async function populateInstructorTable() {
+            const tableBody = document.getElementById('prof-table-body');
+            tableBody.innerHTML = `<tr><td colspan="4">Loading...</td></tr>`; 
+
+            const instructors = await fetchInstructors();
+            tableBody.innerHTML = '';
+
+            if (instructors.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="4">No instructors available</td></tr>`;
+                return;
+            }
+
+            instructors.forEach(instructor => {
+                const availability = instructor.availability ? 'Available' : 'Not Available';
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${instructor.name}</td>
+                    <td>${instructor.email}</td>
+                    <td>${instructor.department}</td>
+                    <td>${availability}</td>`;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function searchInstructor() {
+            const input = document.getElementById('search-input').value.toLowerCase();
+            const rows = document.querySelectorAll('#prof-table-body tr');
+            
+            rows.forEach(row => {
+                const name = row.cells[0].textContent.toLowerCase();
+                const email = row.cells[1].textContent.toLowerCase();
+                if (name.includes(input) || email.includes(input)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        function showContent(section) {
+            const content = document.getElementById('content');
+            switch (section) {
+                case 'appointments':
+                        content.innerHTML = `
+                            <h1>Consultation Form</h1>
+                            <form id="consultation-form" onsubmit="submitConsultation(event)">
+                                <label for="section">Class President RFID:</label>
+                                <input type="password" id="section" name="section" required><br>
+                                <label for="instructor">Name of the Instructor:</label>
+                                <select id="instructor" name="instructor" required>
+                                    <option value="">Loading...</option>
+                                </select><br>
+                                <label for="date">Date:</label>
+                                <input type="date" id="date" name="date" required><br>
+                                <label for="time">Time:</label>
+                                <input type="time" id="time" name="time" required><br>
+                                <label for="reason">Reason:</label>
+                                <textarea id="reason" name="reason" required></textarea><br>
+                                <div class="button-group">
+                                    <button type="submit">Send Request</button>
+                                <button type="button" onclick="document.getElementById('consultation-form').reset()">Cancel</button>
+                                </div>
+                            </form>`;
+                        populateInstructorDropdown();
+                        const dateInput = document.getElementById("date");
+    const timeInput = document.getElementById("time");
+
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const hh = String(today.getHours()).padStart(2, '0');
+    const min = String(today.getMinutes()).padStart(2, '0');
+
+    dateInput.min = `${yyyy}-${mm}-${dd}`;
+    timeInput.min = `${hh}:${min}`;
+
+    document.getElementById("consultation-form").addEventListener("submit", (event) => {
+        const selectedDate = new Date(dateInput.value);
+        const currentDate = new Date();
+
+        if (selectedDate < currentDate.setHours(0, 0, 0, 0)) {
+            event.preventDefault();
+            alert("You cannot select a past date.");
+            return;
+        }
+
+        const selectedTime = timeInput.value;
+        const currentHours = today.getHours();
+        const currentMinutes = today.getMinutes();
+        const selectedHours = parseInt(selectedTime.split(":")[0], 10);
+        const selectedMinutes = parseInt(selectedTime.split(":")[1], 10);
+
+        if (
+            selectedDate.getTime() === today.setHours(0, 0, 0, 0) &&
+            (selectedHours < currentHours ||
+                (selectedHours === currentHours && selectedMinutes < currentMinutes))
+        ) {
+            event.preventDefault();
+            alert("You cannot select a past time.");
+            return;
+        }
+    });
+                    break;
+                case 'view-consultations':
+                    content.innerHTML = `
+                        <h1>View Consultations</h1>
+                        <input type="text" id="consultation-search-input" placeholder="Search consultation..." oninput="searchConsultation()">
+                        <table id="consultation-table">
+                            <thead>
+                                <tr>
+                                    <th>Instructor</th>
+                                    <th>Date & Time</th>
+                                    <th>Purpose</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="consultation-table-body"></tbody>
+                        </table>
+                        <div id="pagination-controls">
+                            <button id="pagination-buttons" onclick="changePage('prev')">Previous</button>
+                            <span id="page-info"></span>
+                            <button id="pagination-buttons" onclick="changePage('next')">Next</button>
+                        </div>`;
+                    populateConsultationTable(); 
+                    
+    break;
+                case 'instructor-registration':
+                    content.innerHTML = `
+                        <h1>Registered Instructors</h1>
+                        <input type="text" id="search-input" placeholder="Search instructor..." oninput="searchInstructor()">
+                        <table id="prof-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Department</th>
+                                    <th>Availability</th>
+                                </tr>
+                            </thead>
+                            <tbody id="prof-table-body"></tbody>
+                        </table>`;
+                    populateInstructorTable(); 
+                    break;
+                case 'update-student':
+                    content.innerHTML = `
+                        <h1>Update Profile</h1>
+                        <form id="update-profile-form">
+                            <label for="name">Name:</label>
+                            <input type="text" id="name" name="name" required><br>
+                            <label for="course_section">Course & Section:</label>
+                            <input type="text" id="course_section" name=course_section" required><br>
+                            <label for="email">Email:</label>
+                            <input type="email" id="email" name="email" required><br>
+                            <button type="submit">Update Profile</button>
+                        </form>`;
+                    break;
+                default:
+                    content.innerHTML = '';
+            }
+        }
+
+        function searchConsultation() {
+            const input = document.getElementById('consultation-search-input').value.toLowerCase();
+            const rows = document.querySelectorAll('#consultation-table-body tr');
+            
+            rows.forEach(row => {
+                const instructor = row.cells[0].textContent.toLowerCase();
+                const date_time = row.cells[1].textContent.toLowerCase();
+                const purpose = row.cells[2].textContent.toLowerCase();
+                const status = row.cells[3].textContent.toLowerCase();
+
+                if (
+                    instructor.includes(input) || 
+                    date_time.includes(input) || 
+                    purpose.includes(input) || 
+                    status.includes(input)
+                ) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        function setupPagination(rows, rowsPerPage) {
+            const paginationControls = document.getElementById("pagination-controls");
+            paginationControls.innerHTML = "";
+
+            const pageCount = Math.ceil(rows.length / rowsPerPage);
+            let currentPage = 1;
+
+            function showPage(page) {
+                const start = (page - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+
+                rows.forEach((row, index) => {
+                    row.style.display = index >= start && index < end ? "" : "none";
+                });
+
+                document.getElementById("page-info").textContent = `Page ${currentPage} of ${pageCount}`;
+                prevButton.disabled = currentPage === 1;
+                nextButton.disabled = currentPage === pageCount;
+            }
+
+            const prevButton = document.createElement("button");
+            prevButton.textContent = "Previous";
+            prevButton.addEventListener("click", () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    showPage(currentPage);
+                }
+            });
+            paginationControls.appendChild(prevButton);
+
+            const pageInfo = document.createElement("span");
+            pageInfo.id = "page-info";
+            pageInfo.style.margin = "0 10px";
+            paginationControls.appendChild(pageInfo);
+
+            const nextButton = document.createElement("button");
+            nextButton.textContent = "Next";
+            nextButton.addEventListener("click", () => {
+                if (currentPage < pageCount) {
+                    currentPage++;
+                    showPage(currentPage);
+                }
+            });
+            paginationControls.appendChild(nextButton);
+
+            showPage(currentPage);
+        }
+
+        function logout() {
+            alert('You have been logged out.');
+            window.location.href = 'index.html'; 
+        }
+
+        showContent('appointments');
+    </script>
+</body>
+
+</html>

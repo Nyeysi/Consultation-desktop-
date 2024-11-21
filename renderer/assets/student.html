@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registration</title>
+    <link rel="stylesheet" href="styles/student.css">
+</head>
+<body>
+    <div class="registration-form">
+        <h2>Student Registration</h2>
+        <form id="student-form">
+            <label for="student">Student Number:</label>
+            <input type="text" id="student_num" name="student" required>
+
+            <label for="name">Name:</label>
+            <input type="text" id="student_name" name="name" required>
+
+            <label for="course">Course And Section:</label>
+            <input type="text" id="course_section" name="course" required>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <button type="submit">Register</button>
+            <button type="button" id="cancel-button">Cancel</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('student-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const studentData = {
+                student_num: document.getElementById('student_num').value,
+                name: document.getElementById('student_name').value,
+                course_section: document.getElementById('course_section').value,
+                email: document.getElementById('email').value
+            };
+
+            fetch('https://consultationapi-production.up.railway.app/api/v1/student/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(studentData)
+            })
+            .then(response => {
+                if (response.status === 201) {
+                    return response.json();
+                } else {
+                    return Promise.reject('Error: ' + response.status + ' - ' + response.statusText);
+                }
+            })
+            .then(data => {
+                alert('Registration successful!');
+                window.location.href = 'dashboard.html';
+            })
+            .catch(error => {
+                console.error('Error:', error); 
+                alert('Registration failed: ' + error);
+            });
+        });
+
+        document.getElementById('cancel-button').addEventListener('click', function() {
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>

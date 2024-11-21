@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Electron App</title>
+	<link rel="stylesheet" href="styles/index.css">
+	<script>
+		// JavaScript to handle button click events
+		function navigateToStudentRegistration() {
+			window.location.href = 'student.html'; // Redirect to student registration page
+		}
+
+		function navigateToClassPresidentRegistration() {
+			window.location.href = 'classpres.html'; // Redirect to class president registration page
+		}
+
+		function navigateToClassPresidentUpdate() {
+			document.getElementById('updateModal').style.display = 'block'; // Show the modal
+		}
+
+		// Validate the QR code input (for this example, it just checks if it's a non-empty string)
+		function validateQRCode(qrCode) {
+			// Assuming a valid QR code is a non-empty string. 
+			// In a real-world scenario, you might want to check against a specific format or call an API to validate.
+			return qrCode.length > 0;  // Simple check for non-empty QR code
+		}
+
+		// Event listener for the QR code scan input field
+		function onQRCodeInput() {
+			const qrCodeInput = document.getElementById("qrCodeInput").value;
+			if (validateQRCode(qrCodeInput)) {
+		// Store the QR code value in localStorage (or sessionStorage)
+		localStorage.setItem('qrCode', qrCodeInput);  // Use sessionStorage if needed
+
+		// Redirect to dashboard
+		window.location.href = 'dashboard.html';
+	} else {
+		console.log('Invalid QR Code');
+	}
+		}
+
+
+		function onRFIDInput() {
+			const rfidInput = document.getElementById("rfidInput").value;
+			if (validateRFID(rfidInput)) {
+		// Store the QR code value in localStorage (or sessionStorage)
+		localStorage.setItem('rfid', rfidInput);  // Use sessionStorage if needed
+
+		// Redirect to dashboard
+		window.location.href = 'update.html';
+	} else {
+		console.log('Invalid RFID');
+	}
+		}
+
+		// Close the modal
+		function closeModal() {
+			document.getElementById('updateModal').style.display = 'none';
+		}
+	</script>
+</head>
+<body>
+	<div class="container">
+		<input type="password" id="qrCodeInput" class="textbox" placeholder="Scan QR Code here" oninput="onQRCodeInput()">
+		<div class="buttons">
+			<!-- Button to navigate to student registration -->
+			<button onclick="navigateToStudentRegistration()">Register as Student</button>
+			<!-- Button to navigate to class president registration -->
+			<button onclick="navigateToClassPresidentRegistration()">Register as Class President</button>
+			
+			<button onclick="navigateToClassPresidentUpdate()">Update Class President</button>
+		</div>
+	</div>
+
+	<!-- Modal for updating class president -->
+	<div id="updateModal" class="modal" style="display:none;">
+		<div class="modalcontent">
+			<span class="close" onclick="closeModal()">&times;</span>
+			
+			<input type="password" id="rfidinput" class="textbox" placeholder="Scan RFID here" oninput="onRFIDInput()">
+		</div>
+	</div>
+
+</body>
+</html></div>

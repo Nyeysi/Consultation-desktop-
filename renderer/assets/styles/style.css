@@ -1,0 +1,319 @@
+body {
+	display: flex;
+	margin: 0;
+	font-family: Arial, sans-serif;
+	background-color: #f0f2f5;
+	height: 100vh;
+	overflow: hidden;
+}
+
+.sidebar {
+	width: 250px;
+	background: linear-gradient(to bottom, #009E49, #BAD80A);
+	color: white;
+	height: 98vh;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	padding: 20px;
+}
+.sidebar a {
+	padding: 15px;
+	text-decoration: none;
+	color: black;
+	display: block;
+	border-radius: 5px;
+	margin-bottom: 10px;
+}
+
+.sidebar a:hover {
+	background-color: green;
+}
+
+.content {
+	flex-grow: 1;
+	padding: 20px;
+	background-color: #ffffff;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+	border-radius: 10px;
+	margin: 20px;
+	overflow-y: auto;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: 20px;
+}
+
+table,
+th,
+td {
+	border: 1px solid black;
+}
+
+th,
+td {
+	padding: 10px;
+	text-align: left;
+}
+
+/* Add styles for the consultation form */
+#consultation-form {
+	display: flex;
+	flex-direction: column;
+	max-width: 400px;
+	margin: 0 auto;
+	padding: 20px;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	background-color: #f9f9f9;
+}
+
+#consultation-form label {
+	margin-top: 10px;
+}
+
+#consultation-form input,
+#consultation-form textarea,
+#consultation-form button {
+	margin-top: 5px;
+	padding: 10px;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+}
+
+#consultation-form button {
+	margin-top: 20px;
+	background-color: #4CAF50;
+	color: black;
+	border: none;
+	cursor: pointer;
+}
+
+#consultation-form button:hover {
+	background-color: #45a049;
+}
+
+/* Add gradient background for consultation section */
+#consultation-form {
+	background: linear-gradient(to bottom right, green, yellow);
+	padding: 20px;
+	border-radius: 10px;
+}
+
+/* Cover the entire page of the consultation form */
+body.consultation-page {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
+	background-color: #f0f2f5;
+}
+
+body.consultation-page #consultation-form {
+	width: 100%;
+	max-width: 600px;
+}
+
+/* Style for the table of registered instructors */
+#prof-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+#prof-table th, #prof-table td {
+	border: 1px solid #ddd;
+	padding: 8px;
+}
+
+#prof-table th {
+	background-color: #f2f2f2;
+	text-align: left;
+}
+
+#prof-table tr:nth-child(even) {
+	background-color: #f9f9f9;
+}
+
+#prof-table tr:hover {
+	background-color: #ddd;
+}
+
+#search-input {
+	width: 100%;
+	padding: 10px;
+	margin: 10px 0;
+	box-sizing: border-box;
+	border: 2px solid #ccc;
+	border-radius: 4px;
+}
+
+/* Make the two buttons next to each other */
+#consultation-form button {
+	margin-top: 20px;
+	background-color: green;
+	color: Black;
+	border: none;
+	cursor: pointer;
+	padding: 10px 20px;
+	font-size: 14px;
+	border-radius: 5px;
+	transition: background-color 0.3s ease;
+}
+
+#consultation-form .button-group {
+	display: flex;
+	justify-content: space-between;
+}
+
+#consultation-form .button-group button:last-child {
+	margin-left: auto;
+}
+
+#consultation-form button:hover {
+	background-color: #45a049;
+}
+
+.logout-btn-container {
+	margin-top: auto; /* Push the logout button to the bottom */
+}
+
+#logoutBtn {
+	color: white;
+	background-color: red;
+	padding: 15px;
+	text-align: center;
+	border-radius: 4px;
+	display: block;
+	width: 100%;
+	font-size: 16px;
+	box-sizing: border-box; /* Ensure padding and border are included in the element's total width and height */
+}
+
+#logoutBtn:hover {
+	background-color: darkred;
+}
+
+.content {
+	padding: 20px;
+	flex-grow: 1;
+}
+
+.button-group {
+	display: flex;
+	gap: 10px;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+table th, table td {
+	border: 1px solid #ddd;
+	padding: 8px;
+	text-align: left;
+}
+
+table th {
+	background-color: #f4f4f4;
+}
+
+select {
+	width: 100%;
+	padding: 8px;
+	margin-top: 5px;
+	margin-bottom: 15px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+#consultation-search-input {
+	margin-bottom: 10px;
+	padding: 5px;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+#consultation-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: 10px;
+}
+
+#consultation-table th, #consultation-table td {
+	border: 1px solid #ddd;
+	padding: 8px;
+	text-align: left;
+}
+
+#consultation-table th {
+	background-color: #f2f2f2;
+}
+
+#pagination-controls {
+	margin-top: 10px;
+	text-align: center;
+}
+
+#pagination-buttons {
+	margin: 0 5px;
+	padding: 5px 10px;
+	cursor: pointer;
+}
+#consultation-table button {
+	padding: 5px 10px;
+	background-color: #f44336;
+	color: white;
+	border: none;
+	border-radius: 3px;
+	cursor: pointer;
+}
+
+#consultation-table button:hover {
+	background-color: #d32f2f;
+}
+
+#consultation-table tbody tr:nth-child(even) {
+	background-color: #f9f9f9;
+}
+
+#consultation-table tbody tr:hover {
+	background-color: #f1f1f1;
+}
+/* Add styles for the update profile form */
+#update-profile-form {
+	display: flex;
+	flex-direction: column;
+	max-width: 400px;
+	margin: 0 auto;
+	padding: 20px;
+	border: 1px solid #ccc;
+	border-radius: 10px;
+	background: linear-gradient(to bottom right, green, yellow);
+}
+
+#update-profile-form label {
+	margin-top: 10px;
+}
+
+#update-profile-form input,
+#update-profile-form textarea,
+#update-profile-form button {
+	margin-top: 5px;
+	padding: 10px;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+}
+
+#update-profile-form button {
+	margin-top: 20px;
+	background-color: #4CAF50;
+	color: black;
+	border: none;
+	cursor: pointer;
+}
+
+#update-profile-form button:hover {
+	background-color: #45a049;
+}
